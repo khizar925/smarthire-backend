@@ -30,6 +30,11 @@ class ScoreRequest(BaseModel):
     job_id: str
 
 
+class SingleScoreRequest(BaseModel):
+    resume_text: str
+    job_description: str
+
+
 # ── Endpoint ──────────────────────────────────────────────────────────────────
 
 @app.post("/score")
@@ -59,6 +64,15 @@ def score(request: ScoreRequest, key: str = Security(verify_api_key)):
         "message": f"Successfully scored {len(results)} applications for job '{job_id}'.",
         "scored_count": len(results)
     }
+
+
+@app.post("/score-single")
+def score_single(request: SingleScoreRequest, key: str = Security(verify_api_key)):
+    """Score a single resume against a job description. Returns a score 0-100."""
+    results = score_resumes(request.job_description, [
+        {"id": "single", "full_name": "", "resume_text": request.resume_text}
+    ])
+    return {"score": results[0]["score"] if results else 0.0}
 
 
 @app.get("/score-status/{job_id}")
