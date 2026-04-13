@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 
 from scorer import score_resumes
-from supabase_client import fetch_job, fetch_applications, save_scores
+from supabase_client import fetch_job, fetch_applications, save_scores, fetch_scores
 
 load_dotenv()
 
@@ -45,7 +45,12 @@ class SingleScoreRequest(BaseModel):
     job_description: str
 
 
-# ── Endpoint ──────────────────────────────────────────────────────────────────
+class SingleScoreResponse(BaseModel):
+    score: float
+    breakdown: dict | None = None
+
+
+# ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @app.post("/score")
 def score(request: ScoreRequest, key: str = Security(verify_api_key)):
@@ -66,7 +71,7 @@ def score(request: ScoreRequest, key: str = Security(verify_api_key)):
     # 3. Score all resumes
     results = score_resumes(job_description, applications)
 
-    # 4. Save scores to DB
+    # 4. Save scores to DB (only the final score is persisted; breakdown is not stored)
     save_scores(job_id, results)
 
     return {
@@ -76,19 +81,25 @@ def score(request: ScoreRequest, key: str = Security(verify_api_key)):
     }
 
 
-@app.post("/score-single")
+@app.post("/score-single", response_model=SingleScoreResponse)
 def score_single(request: SingleScoreRequest, key: str = Security(verify_api_key)):
-    """Score a single resume against a job description. Returns a score 0-100."""
+    """
+    Score a single resume against a job description.
+
+    Returns score (0–100) and an optional breakdown when SCORING_MODE=hybrid.
+    The breakdown field is null in semantic mode and is safe to ignore — existing
+    callers that only read 'score' continue to work unchanged.
+    """
     results = score_resumes(request.job_description, [
         {"id": "single", "full_name": "", "resume_text": request.resume_text}
     ])
-    return {"score": results[0]["score"] if results else 0.0}
+    result = results[0] if results else {"score": 0.0}
+    return {"score": result["score"], "breakdown": result.get("breakdown")}
 
 
 @app.get("/score-status/{job_id}")
 def score_status(job_id: str, key: str = Security(verify_api_key)):
     """Check how many resumes have been scored for a given job."""
-    from supabase_client import fetch_scores
     scores = fetch_scores(job_id)
     return {
         "job_id": job_id,
