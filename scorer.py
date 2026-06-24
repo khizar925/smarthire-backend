@@ -69,11 +69,17 @@ def score_resumes(job_description: str, applications: list[dict]) -> list[dict]:
     cleaned_resumes = [clean(app.get("resume_text") or "") for app in applications]
 
     # ── Step 2 (hybrid only): extract JD skill signals once ──────────────────
+    # If the JD has no skills in skill_map (e.g. sales/ops/admin roles not yet
+    # mapped), skill/category scores would be 0 for every candidate, silently
+    # capping everyone's final score at w_semantic% instead of 100%. Fall back
+    # to semantic-only weighting for this call so unmapped job categories aren't
+    # penalised across the board.
     if scoring_mode == "hybrid":
         jd_skills, jd_categories = extract_skill_set(cleaned_jd)
         if not jd_skills:
             print("WARNING: No known skills extracted from job description. "
-                  "Category/skill scores will be 0 for all candidates.")
+                  "Falling back to semantic-only weighting for this job.")
+            w_semantic, w_skill, w_category = 1.0, 0.0, 0.0
 
     # ── Step 3: batch-encode cleaned texts ───────────────────────────────────
     all_texts = [cleaned_jd] + cleaned_resumes
