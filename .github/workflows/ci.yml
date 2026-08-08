@@ -56,7 +56,7 @@ jobs:
           docker pull ghcr.io/khizar925/smarthire-backend:latest
           docker stop backend || true
           docker rm backend || true
-          docker run -d --name backend --env-file /home/ubuntu/smarthire-backend/.env -p 7860:7860 --restart unless-stopped ghcr.io/khizar925/smarthire-backend:latest
+          docker run -d --name backend --env-file /home/ubuntu/smarthire-backend/.env -p 7860:7860 --restart unless-stopped --log-opt max-size=10m --log-opt max-file=3 ghcr.io/khizar925/smarthire-backend:latest
       - name: Health check
         run: |
           for i in $(seq 1 12); do
