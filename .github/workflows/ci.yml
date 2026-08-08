@@ -33,3 +33,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t smarthire-backend .
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and swap container
+        run: |
+          docker build -t smarthire-backend .
+          docker stop backend || true
+          docker rm backend || true
+          docker run -d --name backend --env-file /home/ubuntu/smarthire-backend/.env -p 7860:7860 --restart unless-stopped smarthire-backend
+      - name: Health check
+        run: |
+          sleep 5
+          curl -f http://localhost:7860/health
