@@ -30,22 +30,33 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t smarthire-backend .
+      - name: Push to GitHub Container Registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag smarthire-backend ghcr.io/khizar925/smarthire-backend:latest
+          docker push ghcr.io/khizar925/smarthire-backend:latest
 
   deploy:
     needs: build
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      packages: read
     steps:
-      - uses: actions/checkout@v4
-      - name: Stop old container, build, run new one
+      - name: Pull new image and swap container
         run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull ghcr.io/khizar925/smarthire-backend:latest
           docker stop backend || true
           docker rm backend || true
-          docker build -t smarthire-backend .
-          docker run -d --name backend --env-file /home/ubuntu/smarthire-backend/.env -p 7860:7860 --restart unless-stopped smarthire-backend
+          docker run -d --name backend --env-file /home/ubuntu/smarthire-backend/.env -p 7860:7860 --restart unless-stopped ghcr.io/khizar925/smarthire-backend:latest
       - name: Health check
         run: |
           sleep 5
