@@ -59,5 +59,13 @@ jobs:
           docker run -d --name backend --env-file /home/ubuntu/smarthire-backend/.env -p 7860:7860 --restart unless-stopped ghcr.io/khizar925/smarthire-backend:latest
       - name: Health check
         run: |
-          sleep 5
-          curl -f http://localhost:7860/health
+          for i in $(seq 1 12); do
+            if curl -sf http://localhost:7860/health; then
+              echo "Healthy"
+              exit 0
+            fi
+            echo "Not ready yet, retrying in 5s ($i/12)..."
+            sleep 5
+          done
+          echo "Health check failed after 60s"
+          exit 1
