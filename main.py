@@ -1,13 +1,14 @@
 # main.py
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
-from dotenv import load_dotenv
-import os
 
 from scorer import score_resumes
-from supabase_client import fetch_job, fetch_applications, save_scores, fetch_scores
+from supabase_client import fetch_applications, fetch_job, fetch_scores, save_scores
 
 load_dotenv()
 

@@ -1,8 +1,9 @@
 # supabase_client.py
-from supabase import create_client, Client
-from dotenv import load_dotenv
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
+
+from dotenv import load_dotenv
+from supabase import Client, create_client
 
 load_dotenv()
 

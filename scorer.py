@@ -1,12 +1,11 @@
 # scorer.py
 import os
 
-import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from text_cleaner import clean
 from preprocessor import extract_skill_set
+from text_cleaner import clean
 
 # Load model once at startup (cached for all requests)
 print("Loading NLP model...")

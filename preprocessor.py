@@ -3,8 +3,8 @@
 
 import re
 
-from text_cleaner import clean
 from skill_map import SKILL_KEYWORDS, expand_skills
+from text_cleaner import clean
 
 
 def extract_skills(text: str) -> set[str]:

@@ -2,17 +2,17 @@
 # Run with: pytest tests/ -v
 # Requires the smarthire-backend venv to be active.
 
-import sys
 import os
+import sys
 
 # Ensure the project root is on the path so imports resolve.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-from text_cleaner import clean
-from preprocessor import extract_skills, extract_skill_set
-from skill_map import expand_skills
 
+from preprocessor import extract_skills
+from skill_map import expand_skills
+from text_cleaner import clean
 
 # ── text_cleaner ──────────────────────────────────────────────────────────────
 
