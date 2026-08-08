@@ -99,8 +99,8 @@ class TestExtractSkills:
 
     def test_unknown_skills_not_returned(self):
         skills = extract_skills(clean("excellent communication skills and leadership"))
-        # None of these map to SKILL_KEYWORDS
-        assert "communication" not in skills
+        # "communication" IS a recognised skill keyword (skill_map's non-technical
+        # taxonomy, for matching sales/support/HR roles) — only "leadership" is unmapped.
         assert "leadership" not in skills
 
 

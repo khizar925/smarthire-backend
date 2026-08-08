@@ -39,8 +39,8 @@ _ALIAS_PATTERNS: list[tuple[str, str]] = [
     # Other
     (r"\btailwindcss\b",              "tailwind"),
     (r"\btailwind[\s\-]css\b",        "tailwind"),
-    (r"\bts\b",                       "typescript"),
-    (r"\bjs\b",                       "javascript"),
+    (r"(?<!\.)\bts\b",                "typescript"),
+    (r"(?<!\.)\bjs\b",                "javascript"),
 ]
 
 # Pre-compile all patterns once at module load for speed.
@@ -85,8 +85,10 @@ def _strip_noisy_chars(text: str) -> str:
 
 
 def _remove_duplicate_sentences(text: str) -> str:
-    # Split on common sentence / line boundaries.
-    parts = re.split(r"(?<=[.!?\n])\s*", text)
+    # Split on sentence-ending punctuation followed by whitespace, or newlines.
+    # Requiring \s+ (not \s*) after .!? stops this from splitting mid-token on
+    # dotted compounds like "node.js" / "next.js", which have no space after the dot.
+    parts = re.split(r"(?<=[.!?])\s+|\n+", text)
     seen: set[str] = set()
     unique: list[str] = []
     for part in parts:

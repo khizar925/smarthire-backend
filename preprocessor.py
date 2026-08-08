@@ -3,7 +3,7 @@
 
 import re
 
-from skill_map import SKILL_KEYWORDS, expand_skills
+from skill_map import ALL_CATEGORIES, SKILL_KEYWORDS, expand_skills
 from text_cleaner import clean
 
 
@@ -42,4 +42,11 @@ def extract_skill_set(raw_text: str) -> tuple[set[str], set[str]]:
     cleaned = clean(raw_text)
     exact_skills = extract_skills(cleaned)
     category_tags = expand_skills(exact_skills)
+
+    # Also catch category words mentioned directly (e.g. "frontend developer"),
+    # so a JD written at the category level still bridges to a resume whose
+    # skills expand into that category.
+    tokens = set(re.findall(r"\b[\w][\w.]*\b", cleaned))
+    category_tags |= tokens & ALL_CATEGORIES
+
     return exact_skills, category_tags

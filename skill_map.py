@@ -87,6 +87,11 @@ SKILL_CATEGORIES: dict[str, list[str]] = {
 # Flat set of all canonical skill names — used for fast membership checks in preprocessor.
 SKILL_KEYWORDS: set[str] = set(SKILL_CATEGORIES.keys())
 
+# Flat set of all category tags — lets preprocessor recognise category-level
+# words mentioned directly in text (e.g. a JD saying "frontend developer"
+# with no specific tech keyword), not just skills that expand into them.
+ALL_CATEGORIES: set[str] = {tag for tags in SKILL_CATEGORIES.values() for tag in tags}
+
 
 def expand_skills(skills: set[str]) -> set[str]:
     """
