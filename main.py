@@ -112,3 +112,11 @@ def score_status(job_id: str, key: str = Security(verify_api_key)):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# ── AWS Lambda entry point ──────────────────────────────────────────────────
+# Mangum adapts this ASGI app to Lambda's event/handler model.
+# Local/EC2 (uvicorn) is unaffected; this only adds a handler Lambda can call.
+from mangum import Mangum
+
+handler = Mangum(app)
