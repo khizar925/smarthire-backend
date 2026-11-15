@@ -1,18 +1,23 @@
-FROM python:3.11-slim
+FROM public.ecr.aws/lambda/python:3.11
 
-WORKDIR /app
+# Cache the NLP model inside the image and load it offline at runtime.
+# Lambda's filesystem is read-only except /tmp, so the model must already be
+# baked in and loaded without any network/cache writes.
+ENV HF_HOME=/opt/hf-cache \
+    SENTENCE_TRANSFORMERS_HOME=/opt/hf-cache \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download NLP model into the image (no cold start delay)
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+# Pre-download NLP model into the image (avoids first-request download).
+# Override the offline flags for THIS step only so the download can reach
+# Hugging Face; at runtime the ENV above keeps the app fully offline.
+RUN HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
-COPY . .
+# Copy app code into the Lambda task root
+COPY . ${LAMBDA_TASK_ROOT}
 
-RUN useradd -m -u 1000 appuser
-USER appuser
-
-EXPOSE 7860
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Lambda calls this: module "main", function "handler" (the Mangum adapter)
+CMD ["main.handler"]
