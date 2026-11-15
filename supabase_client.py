@@ -1,6 +1,6 @@
 # supabase_client.py
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from dotenv import load_dotenv
 from supabase import Client, create_client
@@ -65,7 +65,7 @@ def save_scores(job_id: str, results: list[dict]) -> None:
     Upsert scores into the scores table.
     Safe to re-run — will overwrite existing scores for the same job+application.
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     rows = [
         {
