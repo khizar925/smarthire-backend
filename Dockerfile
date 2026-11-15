@@ -11,8 +11,10 @@ ENV HF_HOME=/opt/hf-cache \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download NLP model into the image (avoids first-request download)
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+# Pre-download NLP model into the image (avoids first-request download).
+# Override the offline flags for THIS step only so the download can reach
+# Hugging Face; at runtime the ENV above keeps the app fully offline.
+RUN HF_HUB_OFFLINE=0 TRANSFORMERS_OFFLINE=0 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
 # Copy app code into the Lambda task root
 COPY . ${LAMBDA_TASK_ROOT}
